@@ -1,0 +1,29 @@
+---
+- name: install apache2 and tools
+  apt: pkg={{item}} state=installed
+  with_items:
+    - apache2
+    - libapache2-mod-security2 
+    - modsecurity-crs
+    - libapache2-mod-evasive
+
+- apache2_module: state=present name=headers
+- apache2_module: state=present name=security2
+- apache2_module: state=present name=evasive
+
+#- apache2_module: state=absent name=autoindex
+- apache2_module: state=absent name=status
+
+# https://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics
+- lineinfile: "dest=/etc/apache2/conf-enabled/security.conf regexp='^ServerTokens ' line='ServerTokens Prod'"
+- lineinfile: "dest=/etc/apache2/conf-enabled/security.conf regexp='^ServerSignature ' line='ServerSignature Off'"
+- lineinfile: "dest=/etc/apache2/conf-enabled/security.conf regexp='^TraceEnable ' line='TraceEnable Off'"
+- lineinfile: "dest=/etc/apache2/conf-enabled/security.conf regexp='^Header unset ETag' line='Header unset ETag'"
+- lineinfile: "dest=/etc/apache2/conf-enabled/security.conf regexp='^FileETag ' line='FileETag None'"
+
+# http://www.suufi.de/anw/web/apache/51-apache2-und-modsecurity
+- command: creates="/etc/modsecurity/modsecurity.conf" cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+- lineinfile: "dest=/etc/modsecurity/modsecurity.conf regexp='^SecRuleEngine ' line='SecRuleEngine On'"
+
+# http://wiki.ubuntuusers.de/Apache/mod_evasive
+# http://spielwiese.la-evento.com/xelasblog/archives/56-Apache-DOS-Attacken-erschweren-mit-mod_evasive.html
